@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'warehouse-bundle/**'
+      - 'archive-parts/**'
       - '.github/workflows/android-apk.yml'
 
 permissions:
