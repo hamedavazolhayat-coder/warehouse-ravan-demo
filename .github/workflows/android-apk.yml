@@ -89,3 +89,5 @@ jobs:
             Built from the verified 1.1.1 source archive.
           files: WarehouseApp/app/build/outputs/apk/debug/app-debug.apk
           fail_on_unmatched_files: true
+
+# direct downloadable release asset enabled
