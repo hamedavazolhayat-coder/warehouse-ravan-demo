@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat warehouse-bundle/segment-*.gz.b64 | tr -d '\n\r ' | base64 --decode | gzip --decompress > /tmp/warehouse-ravan.zip
+          cat archive-parts/part-*.b64 | tr -d '\n\r ' | base64 --decode | gzip --decompress > /tmp/warehouse-ravan.zip
           unzip -t /tmp/warehouse-ravan.zip
           unzip -oq /tmp/warehouse-ravan.zip -d .
           test -f WarehouseApp/app/build.gradle.kts
