@@ -1,38 +1,40 @@
-name: Build RAVAN Warehouse APK
+name: Build Kimia Warehouse APK
 
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
     paths:
-      - 'archive-parts/**'
+      - 'WarehouseApp-Kimia-1.1.1-source.zip'
       - '.github/workflows/android-apk.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ravan-warehouse-apk-${{ github.ref }}
+  group: kimia-warehouse-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Restore source and build debug APK
+    name: Build Kimia warehouse debug APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore compressed Android project
+      - name: Restore Kimia source project
         shell: bash
         run: |
           set -euo pipefail
-          cat archive-parts/part-*.b64 | tr -d '\n\r ' | base64 --decode | gzip --decompress > /tmp/warehouse-ravan.zip
-          unzip -t /tmp/warehouse-ravan.zip
-          unzip -oq /tmp/warehouse-ravan.zip -d .
+          test -s WarehouseApp-Kimia-1.1.1-source.zip
+          mkdir -p WarehouseApp
+          unzip -t WarehouseApp-Kimia-1.1.1-source.zip
+          unzip -oq WarehouseApp-Kimia-1.1.1-source.zip -d WarehouseApp
           test -f WarehouseApp/app/build.gradle.kts
           test -f WarehouseApp/settings.gradle.kts
+          grep -q 'کیمیا مس تابان کویر' WarehouseApp/app/src/main/res/values/strings.xml
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -70,7 +72,7 @@ jobs:
       - name: Upload installable APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: warehouse-ravan-app-debug
+          name: kimia-warehouse-1.1.1-apk
           path: WarehouseApp/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
