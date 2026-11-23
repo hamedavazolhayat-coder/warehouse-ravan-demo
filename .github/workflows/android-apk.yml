@@ -9,7 +9,7 @@ on:
       - '.github/workflows/android-apk.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: kimia-warehouse-apk-${{ github.ref }}
@@ -78,3 +78,14 @@ jobs:
           path: WarehouseApp/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish direct APK download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: kimia-warehouse-v1.1.1
+          name: Kimia Warehouse 1.1.1
+          body: |
+            نسخه نصب اندروید برنامه کیمیا مس تابان کویر.
+            Built from the verified 1.1.1 source archive.
+          files: WarehouseApp/app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
