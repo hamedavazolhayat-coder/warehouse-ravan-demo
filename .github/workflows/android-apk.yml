@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'WarehouseApp-Kimia-1.1.1-source.zip'
+      - 'transfer/*.b64'
       - '.github/workflows/android-apk.yml'
 
 permissions:
@@ -17,24 +17,26 @@ concurrency:
 
 jobs:
   build:
-    name: Build Kimia warehouse debug APK
+    name: Build Kimia 1.1.1 APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore Kimia source project
+      - name: Restore compressed source archive
         shell: bash
         run: |
           set -euo pipefail
-          test -s WarehouseApp-Kimia-1.1.1-source.zip
+          test -s transfer/part-00.b64
+          cat transfer/part-*.b64 | tr -d '\n' | base64 --decode > /tmp/kimia-source.tar.xz
+          xz --test /tmp/kimia-source.tar.xz
           mkdir -p WarehouseApp
-          unzip -t WarehouseApp-Kimia-1.1.1-source.zip
-          unzip -oq WarehouseApp-Kimia-1.1.1-source.zip -d WarehouseApp
+          tar -xJf /tmp/kimia-source.tar.xz -C WarehouseApp
           test -f WarehouseApp/app/build.gradle.kts
           test -f WarehouseApp/settings.gradle.kts
           grep -q 'کیمیا مس تابان کویر' WarehouseApp/app/src/main/res/values/strings.xml
+          grep -q 'versionName = "1.1.1"' WarehouseApp/app/build.gradle.kts
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
