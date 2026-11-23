@@ -1,0 +1,76 @@
+name: Build RAVAN Warehouse APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'warehouse-bundle/**'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ravan-warehouse-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Restore source and build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore compressed Android project
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat warehouse-bundle/segment-*.gz.b64 | tr -d '\n\r ' | base64 --decode | gzip --decompress > /tmp/warehouse-ravan.zip
+          unzip -t /tmp/warehouse-ravan.zip
+          unzip -oq /tmp/warehouse-ravan.zip -d .
+          test -f WarehouseApp/app/build.gradle.kts
+          test -f WarehouseApp/settings.gradle.kts
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Install Android SDK 34
+        run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Compile debug APK
+        working-directory: WarehouseApp
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=WarehouseApp/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          ls -lh "$APK"
+          sha256sum "$APK"
+
+      - name: Upload installable APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: warehouse-ravan-app-debug
+          path: WarehouseApp/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
